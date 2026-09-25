@@ -4,35 +4,35 @@ metadata:
   name: spaces
   namespace: spaces
   labels:
-    app.kubernetes.io/name: spaces
+    app: spaces
 spec:
   replicas: 1
-  revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app.kubernetes.io/name: spaces
+      app: spaces
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: spaces
+        app: spaces
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: spaces
           image: ghcr.io/ndaden/spaces:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
-              name: http
           livenessProbe:
             httpGet:
               path: /healthz
-              port: http
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /healthz
-              port: http
+              port: 80
             initialDelaySeconds: 2
             periodSeconds: 5
           resources:

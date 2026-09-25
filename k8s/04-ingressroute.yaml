@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: spaces-ingress
+  namespace: spaces
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+    - match: Host(`spaces.dnabil.ovh`)
+      kind: Rule
+      services:
+        - name: spaces-svc
+          port: 80
+  tls:
+    secretName: spaces-tls-secret

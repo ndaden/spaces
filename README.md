@@ -23,31 +23,33 @@ Application web d'esquisse de programme architectural conçue pour une utilisati
 
 Les manifests déclaratifs sont regroupés dans le dossier `k8s/` :
 
-- `k8s/namespace.yaml` : Namespace dédié `spaces`
-- `k8s/deployment.yaml` : Déploiement Nginx Alpine avec sondes `/healthz`
-- `k8s/service.yaml` : Service ClusterIP
-- `k8s/ingress.yaml` : Ingress Traefik avec terminaison TLS cert-manager (`letsencrypt-prod`)
-- `k8s/kustomization.yaml` : Gestionnaire Kustomize
+- `k8s/01-namespace.yaml` : Namespace dédié `spaces`
+- `k8s/02-deployment.yaml` : Déploiement Nginx Alpine avec sondes `/healthz` et secret de pull GHCR
+- `k8s/03-service.yaml` : Service ClusterIP port 80
+- `k8s/04-ingressroute.yaml` : IngressRoute Traefik natif avec terminaison TLS cert-manager (`letsencrypt-prod`)
 
-### Déployer sur le cluster
+### Déployer manuellement sur le cluster
 
 ```bash
-kubectl apply -k k8s/
+kubectl apply -f k8s/01-namespace.yaml
+kubectl apply -f k8s/02-deployment.yaml
+kubectl apply -f k8s/03-service.yaml
+kubectl apply -f k8s/04-ingressroute.yaml
 ```
 
 ### Vérifier le déploiement
 
 ```bash
-kubectl get pods,svc,ingress -n spaces
+kubectl get pods,svc,ingressroute -n spaces
 ```
 
 ---
 
 ## CI/CD Automatisé & Déploiement Continu
 
-À chaque commit poussé sur la branche `main` (ou via déclenchement manuel dans GitHub Actions), le workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) :
-1. **Build & Publication :** Construit l'image Docker multi-architecture (`linux/amd64`, `linux/arm64`) et la pousse sur GitHub Container Registry (`ghcr.io/ndaden/spaces:latest`).
-2. **Déploiement sur le VPS :** Se connecte à votre cluster k3s à l'aide du secret `KUBECONFIG`, applique les manifests K8s (`kubectl apply -k k8s/`) et redémarre le déploiement (`kubectl rollout restart deployment/spaces -n spaces`).
+À chaque commit poussé sur la branche `main` (ou via déclenchement manuel dans GitHub Actions), le workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) (calqué sur le modèle de **Quizzy**) :
+1. **Build & Publication :** Construit l'image Docker multi-architecture (`linux/amd64`, `linux/arm64`) et la pousse sur GitHub Container Registry (`ghcr.io/ndaden/spaces:${{ github.sha }}`).
+2. **Déploiement sur le VPS :** Se connecte à votre cluster k3s à l'aide du secret `KUBECONFIG` (décodé en base64), applique les manifests K8s et redémarre le déploiement (`kubectl rollout restart deployment spaces -n spaces`).
 
 ### Configuration du Secret GitHub pour le déploiement automatique
 
