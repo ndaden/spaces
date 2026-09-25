@@ -1,0 +1,28 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor & IDE directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.gemini/
+
+# Build & dependencies (for future Vite/TS refactor)
+node_modules/
+dist/
+build/
+.env
+.env.local
+
+# Local secrets & sensitive files
+*.secret.yaml
+*.pem
+*.key

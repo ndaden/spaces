@@ -1,0 +1,10 @@
+.git
+.github
+.gitignore
+.dockerignore
+k8s/
+docs/
+*.md
+!LISEZMOI.md
+.DS_Store
+.gemini
