@@ -65,11 +65,22 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
 
-      - name: Set Kubernetes Context
-        uses: azure/k8s-set-context@v4
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
+      - name: Configure Kubeconfig (auto-detect Base64 or plain YAML)
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
+        run: |
+          mkdir -p "$HOME/.kube"
+          if echo "$KUBECONFIG_DATA" | grep -q "apiVersion:"; then
+            printf '%s\n' "$KUBECONFIG_DATA" > "$HOME/.kube/config"
+          else
+            printf '%s\n' "$KUBECONFIG_DATA" | base64 -d > "$HOME/.kube/config"
+          fi
+          chmod 600 "$HOME/.kube/config"
+          echo "KUBECONFIG=$HOME/.kube/config" >> "$GITHUB_ENV"
+
+      - name: Verify Cluster Connection
+        run: |
+          kubectl cluster-info
 
       - name: Apply Kubernetes Manifests
         run: |
