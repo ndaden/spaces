@@ -43,11 +43,24 @@ kubectl get pods,svc,ingress -n spaces
 
 ---
 
-## CI/CD Automatisé
+## CI/CD Automatisé & Déploiement Continu
 
-À chaque commit poussé sur la branche `main`, le workflow GitHub Actions (`.github/workflows/deploy.yml`) :
-1. Construit l'image Docker multi-architecture (`linux/amd64`, `linux/arm64`).
-2. Publie l'image sur GitHub Container Registry : `ghcr.io/ndaden/spaces:latest`.
+À chaque commit poussé sur la branche `main` (ou via déclenchement manuel dans GitHub Actions), le workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) :
+1. **Build & Publication :** Construit l'image Docker multi-architecture (`linux/amd64`, `linux/arm64`) et la pousse sur GitHub Container Registry (`ghcr.io/ndaden/spaces:latest`).
+2. **Déploiement sur le VPS :** Se connecte à votre cluster k3s à l'aide du secret `KUBECONFIG`, applique les manifests K8s (`kubectl apply -k k8s/`) et redémarre le déploiement (`kubectl rollout restart deployment/spaces -n spaces`).
+
+### Configuration du Secret GitHub pour le déploiement automatique
+
+Pour activer le déploiement automatique vers votre VPS, configurez le secret `KUBECONFIG` :
+
+1. Sur votre VPS k3s, affichez le fichier kubeconfig en remplaçant `127.0.0.1` par l'IP publique ou le domaine de votre VPS :
+   ```bash
+   sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/127.0.0.1/<VOTRE_IP_VPS>/"
+   ```
+2. Rendez-vous sur GitHub dans les paramètres de votre dépôt :
+   `Settings` > `Secrets and variables` > `Actions` > `New repository secret`
+3. Nom : `KUBECONFIG`
+4. Valeur : Collez l'intégralité du résultat obtenu à l'étape 1.
 
 ---
 
